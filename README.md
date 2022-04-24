@@ -41,4 +41,4 @@ npm install gatsby-source-strapi-plugin-navigation-v3
 
 ## Credits
 
-Edited plugin [gatsby-source-strapi-plugin-navigation-v2](https://github.com/VirtusLab-Open-Source/strapi-plugin-navigation) for own purposes.
+Edited plugin [gatsby-source-strapi-plugin-navigation-v2](https://github.com/webbersagency/gatsby-source-strapi-plugin-navigation-v2) for own purposes.
