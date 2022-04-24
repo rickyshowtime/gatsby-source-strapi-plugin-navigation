@@ -27,7 +27,7 @@ npm install gatsby-source-strapi-plugin-navigation-v3
    options: {
      apiURL: process.env.STRAPI_API_URL,
      navigations: [
-       //  array of navigation end points
+       //  array of navigation end-points
        {
          name: "MainNavigation", // optional
          slugOrId: "navigation",
@@ -35,6 +35,11 @@ npm install gatsby-source-strapi-plugin-navigation-v3
        },
      ],
      token: process.env.STRAPI_TOKEN,
+    // Optional, useful when navigation subitems are optional 
+     schemaForOptionalRelatedFields: `
+              slug:  String
+              title: String
+            `
    },
  }
 ```
