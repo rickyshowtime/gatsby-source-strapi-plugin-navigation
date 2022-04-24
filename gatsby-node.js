@@ -1,65 +1,96 @@
-const fetch = require("node-fetch")
+const fetch = require("node-fetch");
 
 const fetchNavigationItems = async (url, headers) => {
-  const response = await fetch(url, {
-    headers: headers,
-  })
-  return response.json()
+  try {
+    const response = await fetch(url, {
+      headers: headers,
+    });
+    return response.json();
+  } catch (error) {
+    reporter.error(`Error, failed to fetch ${url}},`, error);
+    return null;
+  }
+};
+const generateNavigationName = (navigation) => {
+  let node_name = `StrapiNavigationPlugin${capitalize(navigation.slugOrId)}`;
 
+  if (navigation.name) {
+    node_name = `StrapiNavigationPlugin${navigation.name}`;
+  }
+  return node_name
 }
 
-exports.sourceNodes = async ({
-  actions: { createNode },
-  createNodeId,
-  createContentDigest,
-  reporter,
-}, { apiURL, token, navigations, }) => {
+const capitalize = (s) => {
+  if (typeof s !== "string") return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
 
+exports.sourceNodes = async (
+  { actions: { createNode }, createNodeId, createContentDigest, reporter, },
+  { apiURL, token, navigations }
+) => {
+  if (!apiURL || apiURL === "") {
+    reporter.error(`Error, apiUrl is empty!`);
+  }
 
-  const headers = {}
+  const headers = {};
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`
+    headers["Authorization"] = `Bearer ${token}`;
   }
-
-
-  const capitalize = (s) => {
-    if (typeof s !== 'string') return s
-    return s.charAt(0).toUpperCase() + s.slice(1)
-  }
-
 
   for (const navigation of navigations) {
-    const url = `${apiURL}/api/navigation/render/${navigation.slugOrId}/${navigation.type ? `?type=${navigation.type}` : ""}`;
-    const items = await fetchNavigationItems(url, headers)
+    const url = `${apiURL}/api/navigation/render/${navigation.slugOrId}/${navigation.type ? `?type=${navigation.type}` : ""
+      }`;
+    const items = await fetchNavigationItems(url, headers);
 
-    let node_name = `StrapiNavigationPlugin${capitalize(navigation.slugOrId)}`
+    const NAVIGATION_NODE = generateNavigationName(navigation);
 
-    if (navigation.name) {
-      node_name = `StrapiNavigationPlugin${navigation.name}`
+    if (items && Array.isArray(items)) {
+      items.map((item, index) => {
+        const node = {
+          ...item,
+          parentNode: item.parent,
+          id: createNodeId(`${NAVIGATION_NODE}-${item.id}`),
+          parent: null,
+          children: [],
+          internal: {
+            type: NAVIGATION_NODE,
+            content: JSON.stringify(item),
+            contentDigest: createContentDigest(item),
+          },
+        };
+        createNode(node);
+
+      });
+    } else {
+      reporter.error(`Error, navigation "${NAVIGATION_NODE}" is empty or isn´t array`);
     }
-
-    items.map((item, index) => {
-      const node = {
-        ...item,
-        id: createNodeId(`${node_name}-${item.id}`),
-        parent: null,
-        children: [],
-        internal: {
-          type: node_name,
-          content: JSON.stringify(item),
-          contentDigest: createContentDigest(item),
-        },
-      }
-
-      createNode(node)
-
-    })
-
-    reporter.success(`Successfully sourced ${navigation.slugOrId} navigation items.`)
   }
+  reporter.success(
+    `Successfully sourced navigation items.`
+  );
+};
 
 
-
-
+exports.createSchemaCustomization = ({ actions, schema }, { navigations, schemaForOptionalRelatedFields }) => {
+  const { createTypes } = actions
+  for (const navigation of navigations) {
+    const NAVIGATION_NODE = generateNavigationName(navigation);
+    createTypes(`
+    type ${NAVIGATION_NODE} implements Node {
+      items: [Items!]
+    }
+    type Items {
+      slug: String
+      title: String
+      type: String
+      path: String
+      related: Related!
+    }
+    type Related {
+      ${schemaForOptionalRelatedFields}
+    }
+  `)
+  }
 }
