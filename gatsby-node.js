@@ -73,7 +73,7 @@ exports.sourceNodes = async (
 };
 
 
-exports.createSchemaCustomization = ({ actions, schema }, { navigations, schemaForOptionalRelatedFields }) => {
+exports.createSchemaCustomization = ({ actions, schema }, { navigations, schemaForOptionalRelatedFields = "" }) => {
   const { createTypes } = actions
   for (const navigation of navigations) {
     const NAVIGATION_NODE = generateNavigationName(navigation);
@@ -86,11 +86,13 @@ exports.createSchemaCustomization = ({ actions, schema }, { navigations, schemaF
       title: String
       type: String
       path: String
-      related: Related!
+      ${schemaForOptionalRelatedFields && `related: Related!`} 
     }
-    type Related {
+    ${schemaForOptionalRelatedFields &&
+      `type Related {
       ${schemaForOptionalRelatedFields}
-    }
-  `)
+        } `
+      }
+`)
   }
 }
