@@ -1,4 +1,4 @@
-# gatsby-source-strapi-plugin-navigation-v3
+# gatsby-source-strapi-plugin-navigation
 
 This plugin sources the [strapi-plugin-navigation](https://github.com/VirtusLab-Open-Source/strapi-plugin-navigation).
 
@@ -9,13 +9,13 @@ It support custom names and independent navigation types per navigation.
 yarn:
 
 ```bash
-yarn add gatsby-source-strapi-plugin-navigation-v3
+yarn add gatsby-source-strapi-plugin-navigation
 ```
 
 npm:
 
 ```bash
-npm install gatsby-source-strapi-plugin-navigation-v3
+npm install gatsby-source-strapi-plugin-navigation
 ```
 
 ## How to use
@@ -23,7 +23,7 @@ npm install gatsby-source-strapi-plugin-navigation-v3
 ```js
 // gatsby-config.js
  {
-   resolve: "gatsby-source-strapi-plugin-navigation-v3",
+   resolve: "gatsby-source-strapi-plugin-navigation",
    options: {
      apiURL: process.env.STRAPI_API_URL,
      navigations: [
@@ -46,4 +46,4 @@ npm install gatsby-source-strapi-plugin-navigation-v3
 
 ## Credits
 
-Edited plugin [gatsby-source-strapi-plugin-navigation-v2](https://github.com/webbersagency/gatsby-source-strapi-plugin-navigation-v2) for own purposes.
+Edited plugin [gatsby-source-strapi-plugin-navigation-v3](https://github.com/mariansimecek/gatsby-source-strapi-plugin-navigation-v3) for own purposes.
