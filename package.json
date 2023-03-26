@@ -1,16 +1,16 @@
 {
-  "name": "gatsby-source-strapi-plugin-navigation-v3",
-  "version": "1.0.2",
+  "name": "gatsby-source-strapi-plugin-navigation",
+  "version": "2.2.4",
   "description": "Gatsby source plugin to fetch and expose the Navigations as GraphQL nodes in Gatsby from Strapi using the strapi-plugin-navigation API.",
-  "homepage": "https://github.com/mariansimecek/gatsby-source-strapi-plugin-navigation-v3.git#readme",
+  "homepage": "https://github.com/rickyshowtime/gatsby-source-strapi-plugin-navigation.git#readme",
   "repository": {
     "type": "git",
-    "url": "git@github.com:mariansimecek/gatsby-source-strapi-plugin-navigation-v3.git"
+    "url": "git@github.com:rickyshowtime/gatsby-source-strapi-plugin-navigation.git"
   },
   "author": {
-    "name": "Marian Šimeček",
-    "email": "mariansimecek@gmail.com",
-    "url": "https://github.com/mariansimecek/"
+    "name": "Eric Chautems",
+    "email": "chautems.eric@gmail.com",
+    "url": "https://github.com/rickyshowtime/"
   },
   "main": "index.js",
   "scripts": {
@@ -25,11 +25,11 @@
     "gatsby-source",
     "strapi-plugin",
     "strapi-plugin-navigation",
-    "strapi-plugin-navigation-v3"
+    "strapi-plugin-navigation-v4"
   ],
   "license": "0BSD",
   "peerDependencies": {
-    "gatsby": "^4.9.0"
+    "gatsby": "^5.0.0"
   },
   "dependencies": {
     "node-fetch": "^2.6.7"
