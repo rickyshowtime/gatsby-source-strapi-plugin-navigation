@@ -12,10 +12,14 @@ const fetchNavigationItems = async (url, headers) => {
   }
 };
 const generateNavigationName = (navigation) => {
-  let node_name = `StrapiNavigationPlugin${capitalize(navigation.slugOrId)}`;
+  let node_name = `StrapiNavigation${capitalize(navigation.slugOrId)}`;
 
   if (navigation.name) {
-    node_name = `StrapiNavigationPlugin${navigation.name}`;
+    node_name = `StrapiNavigation${navigation.name}`;
+  }
+
+  if(navigation.default){
+    node_name = `StrapiNavigation`;
   }
   return node_name
 }
@@ -26,7 +30,7 @@ const capitalize = (s) => {
 };
 
 exports.sourceNodes = async (
-  { actions: { createNode }, createNodeId, createContentDigest, reporter, },
+  { actions: { createNode, createParentChildLink }, getNode, createNodeId, createContentDigest, reporter, },
   { apiURL, token, navigations }
 ) => {
   if (!apiURL || apiURL === "") {
@@ -46,13 +50,42 @@ exports.sourceNodes = async (
 
     const NAVIGATION_NODE = generateNavigationName(navigation);
 
+    const createdNode = []
+
     if (items && Array.isArray(items)) {
       items.map((item, index) => {
+        let parentNode;
+        if(item.parent){
+          const parent = item.parent
+          parentNode = createdNode.find(parentId => parentId === parent.id)
+          if(!parentNode){
+            parentNode = {
+              ...parent,
+              id: createNodeId(`${NAVIGATION_NODE}-${parent.id}`),
+              _id: parent.id,
+              parent: null,
+              children: [],
+              internal: {
+                type: NAVIGATION_NODE,
+                content: JSON.stringify(parent),
+                contentDigest: createContentDigest(parent),
+              },
+            };
+            createNode(parentNode);
+            createdNode.push(parentNode._id)
+          }
+        }
+        if(createdNode.find(itemId => itemId === item.id)){
+          return
+        }
         const node = {
           ...item,
-          parentNode: item.parent,
+          parentNode: {
+            ...item.parent
+          },
           id: createNodeId(`${NAVIGATION_NODE}-${item.id}`),
-          parent: null,
+          _id: item.id,
+          parent: parentNode ? parentNode.id : null,
           children: [],
           internal: {
             type: NAVIGATION_NODE,
@@ -61,7 +94,10 @@ exports.sourceNodes = async (
           },
         };
         createNode(node);
-
+        if(parentNode){
+          //createParentChildLink({ parent: parentNode, child: node })
+        }
+        createdNode.push(node._id)
       });
     } else {
       reporter.error(`Error, navigation "${NAVIGATION_NODE}" is empty or isn´t array`);
@@ -77,22 +113,44 @@ exports.createSchemaCustomization = ({ actions, schema }, { navigations, schemaF
   const { createTypes } = actions
   for (const navigation of navigations) {
     const NAVIGATION_NODE = generateNavigationName(navigation);
-    createTypes(`
-    type ${NAVIGATION_NODE} implements Node {
-      items: [Items!]
-    }
-    type Items {
-      slug: String
-      title: String
-      type: String
-      path: String
-      ${schemaForOptionalRelatedFields && `related: Related!`} 
-    }
-    ${schemaForOptionalRelatedFields &&
+    const typeDefs = [
+      `
+        type ${NAVIGATION_NODE} implements Node {
+          items: [Items!]
+        }
+        type Items {
+          slug: String
+          title: String
+          type: String
+          path: String
+          ${schemaForOptionalRelatedFields && `related: Related!`} 
+        }
+        ${schemaForOptionalRelatedFields &&
       `type Related {
-      ${schemaForOptionalRelatedFields}
-        } `
+              ${schemaForOptionalRelatedFields}
+          }`
       }
-`)
+    `,
+      schema.buildObjectType({
+        name: NAVIGATION_NODE,
+        fields: {
+          navigationChildren: {
+            type: `[${NAVIGATION_NODE}]`,
+            resolve: async (source, args, context, info) => {
+              let filters = {parentNode: {id: {eq: source._id}}}
+
+              const { entries, totalCount } = await context.nodeModel.findAll({
+                type: NAVIGATION_NODE,
+                query: {
+                  filter: filters
+                }
+              });
+              return entries
+            }
+          }
+        }
+      })
+    ]
+    createTypes(typeDefs)
   }
 }
